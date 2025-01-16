@@ -1,0 +1,63 @@
+stages:
+  - plan
+  - apply
+
+variables:
+  TF_ROOT: "./govcloud" # Root directory for Terraform code
+  TF_PLAN: "terraform.tfplan" # Name of the Terraform plan file
+
+# Terraform Plan for Network
+plan-network:
+  stage: plan
+  script:
+    - cd $TF_ROOT/network
+    - terraform init
+    - terraform plan -out=$TF_PLAN
+  artifacts:
+    paths:
+      - $TF_ROOT/network/$TF_PLAN
+    when: always
+  environment:
+    name: $CI_PROJECT_NAMESPACE/$CI_PROJECT_NAME/$env_name/network
+
+# Terraform Apply for Network with Approval
+apply-network:
+  stage: apply
+  script:
+    - cd $TF_ROOT/network
+    - terraform apply -auto-approve $TF_PLAN
+  dependencies:
+    - plan-network
+  environment:
+    name: $CI_PROJECT_NAMESPACE/$CI_PROJECT_NAME/$env_name/network
+  when: manual
+  allow_failure: false
+
+# Terraform Plan for AKS, depending on Network Apply
+plan-aks:
+  stage: plan
+  script:
+    - cd $TF_ROOT/aks
+    - terraform init
+    - terraform plan -out=$TF_PLAN
+  artifacts:
+    paths:
+      - $TF_ROOT/aks/$TF_PLAN
+    when: always
+  environment:
+    name: $CI_PROJECT_NAMESPACE/$CI_PROJECT_NAME/$env_name/aks
+  dependencies:
+    - apply-network # Ensure AKS planning depends on Network apply
+
+# Terraform Apply for AKS with Approval, depending on Network Apply
+apply-aks:
+  stage: apply
+  script:
+    - cd $TF_ROOT/aks
+    - terraform apply -auto-approve $TF_PLAN
+  dependencies:
+    - apply-network # Ensure AKS applying depends on Network apply
+  environment:
+    name: $CI_PROJECT_NAMESPACE/$CI_PROJECT_NAME/$env_name/aks
+  when: manual
+  allow_failure: false
