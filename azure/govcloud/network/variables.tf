@@ -1,4 +1,10 @@
 # Existing variables
+variable "general_tags" {
+  description = "a list of general tags to be used throughout the environment"
+  type        = list(string)
+  default     = ["govcloud", "dev", "vnet1"]
+}
+
 variable "resource_group_name" {
   description = "Name of the resource group"
   type        = string
@@ -12,6 +18,12 @@ variable "location" {
 variable "vnet_name" {
   description = "Name of the virtual network"
   type        = string
+}
+
+variable "vnet_tags" {
+  description = "a list of general tags to be used for the vnet"
+  type        = list(string)
+  default     = ["govcloud", "dev", "vnet1"]
 }
 
 variable "vnet_address_space" {

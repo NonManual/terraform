@@ -3,6 +3,7 @@ resource "azurerm_virtual_network" "vnet" {
   address_space       = var.vnet_address_space
   location            = data.terraform_remote_state.iam.outputs.resource_group_location
   resource_group_name = data.terraform_remote_state.iam.outputs.resource_group_name
+  tags                = var.vnet_tags
 }
 
 resource "azurerm_subnet" "aks" {
@@ -26,6 +27,7 @@ resource "azurerm_lb" "lb" {
   sku                 = "Standard"
 }
 
+#Nipper IP or requested public IP
 resource "azurerm_public_ip" "lb_ip" {
   name                = var.public_ip_name
   location            = data.terraform_remote_state.iam.outputs.resource_group_location
