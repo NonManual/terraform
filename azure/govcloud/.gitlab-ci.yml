@@ -6,6 +6,34 @@ variables:
   TF_ROOT: "./govcloud" # Root directory for Terraform code
   TF_PLAN: "terraform.tfplan" # Name of the Terraform plan file
 
+# Terraform Plan for IAM
+plan-iam:
+  stage: plan
+  script:
+    - cd $TF_ROOT/iam
+    - terraform init
+    - terraform plan -out=$TF_PLAN
+  artifacts:
+    paths:
+      - $TF_ROOT/iam/$TF_PLAN
+    when: always
+  environment:
+    name: $CI_PROJECT_NAMESPACE/$CI_PROJECT_NAME/$env_name/iam
+
+# Terraform Apply for IAM with Approval
+apply-iam:
+  stage: apply
+  script:
+    - cd $TF_ROOT/iam
+    - terraform apply -auto-approve $TF_PLAN
+  dependencies:
+    - plan-iam
+  environment:
+    name: $CI_PROJECT_NAMESPACE/$CI_PROJECT_NAME/$env_name/iam
+  when: manual
+  allow_failure: false
+
+
 # Terraform Plan for Network
 plan-network:
   stage: plan
@@ -17,6 +45,8 @@ plan-network:
     paths:
       - $TF_ROOT/network/$TF_PLAN
     when: always
+  dependencies:
+    - apply-iam
   environment:
     name: $CI_PROJECT_NAMESPACE/$CI_PROJECT_NAME/$env_name/network
 
